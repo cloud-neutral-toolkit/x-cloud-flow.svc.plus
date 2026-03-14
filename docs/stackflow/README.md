@@ -17,6 +17,8 @@
 - MCP 规范：`mcp.md`
 - Skills 规范：`skills.md`
 - Agent 模式：`agent-mode.md`
+- Codex / OpenClaw 集成：`codex-openclaw.md`
+- Codex ACP + Terraform/Ansible + Edge SSH 实施方案：`../plans/2026-03-14-xcloudflow-codex-acp-iac-edge-ssh.md`
 - GitHub Actions 编排：`ci-workflow.md`
 
 ## 与 XCloudFlow 的关系

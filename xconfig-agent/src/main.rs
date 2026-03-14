@@ -55,7 +55,7 @@ async fn main() -> anyhow::Result<()> {
 
     match command {
         Commands::Oneshot => {
-            let repo_dir = "/tmp/xconfig-agent-sync";
+            let repo_dir = agent_config.repo_dir();
             let branch = agent_config.branch.as_deref().unwrap_or("main");
 
             config::init_or_update_repo(&agent_config.repo, branch, repo_dir)?;
@@ -78,7 +78,8 @@ async fn main() -> anyhow::Result<()> {
                 let content = fs::read_to_string(&playbook_path).await?;
                 let parsed: Vec<models::Play> = serde_yaml::from_str(&content)?;
                 let results = run_playbook(parsed).await?;
-                result_store::persist(results).await?;
+                result_store::persist(results, agent_config.status_dir(), agent_config.node_id())
+                    .await?;
             }
         }
 
@@ -90,11 +91,12 @@ async fn main() -> anyhow::Result<()> {
             let content = fs::read_to_string(file).await?;
             let parsed: Vec<models::Play> = serde_yaml::from_str(&content)?;
             let results = run_playbook(parsed).await?;
-            result_store::persist(results).await?;
+            result_store::persist(results, agent_config.status_dir(), agent_config.node_id())
+                .await?;
         }
 
         Commands::Status => {
-            result_store::print_latest().await?;
+            result_store::print_latest(agent_config.status_dir()).await?;
         }
 
         Commands::Version => {

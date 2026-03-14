@@ -13,6 +13,27 @@ pub struct AgentConfig {
     pub playbook: Vec<String>,
     pub branch: Option<String>,
     pub workdir: Option<String>,
+    pub sync_dir: Option<String>,
+    pub status_dir: Option<String>,
+    pub node_id: Option<String>,
+}
+
+impl AgentConfig {
+    pub fn repo_dir(&self) -> &str {
+        self.sync_dir
+            .as_deref()
+            .unwrap_or("/tmp/xconfig-agent-sync")
+    }
+
+    pub fn status_dir(&self) -> &str {
+        self.status_dir
+            .as_deref()
+            .unwrap_or("/var/lib/xconfig-agent")
+    }
+
+    pub fn node_id(&self) -> Option<&str> {
+        self.node_id.as_deref()
+    }
 }
 
 /// 加载本地 agent 配置文件（例如 /etc/xconfig-agent.conf）

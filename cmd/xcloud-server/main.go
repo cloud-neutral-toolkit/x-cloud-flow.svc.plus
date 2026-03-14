@@ -6,9 +6,12 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
+	"xcloudflow/internal/a2a"
 	"xcloudflow/internal/mcp"
+	"xcloudflow/internal/openclaw"
 	"xcloudflow/internal/store"
 )
 
@@ -21,7 +24,11 @@ import (
 // State/memory is persisted in PostgreSQL (postgresql.svc.plus) when DATABASE_URL is provided.
 func main() {
 	var addr string
+	var workspace string
+	var envFile string
 	flag.StringVar(&addr, "addr", "", "listen address (default :$PORT or :8080)")
+	flag.StringVar(&workspace, "workspace", "", "workspace root for Codex/OpenClaw bridge defaults")
+	flag.StringVar(&envFile, "env-file", "", "path to local mixed .env/.json-style gateway secrets file")
 	flag.Parse()
 
 	if addr == "" {
@@ -46,10 +53,16 @@ func main() {
 		defer st.Close()
 	}
 
-	srv := mcp.NewServer(mcp.ServerOptions{Store: st})
+	srv := mcp.NewServer(mcp.ServerOptions{
+		Store:        st,
+		WorkspaceDir: workspace,
+		EnvFile:      envFile,
+	})
+	a2aServer := a2a.NewService(resolveAgentID(envFile), "automation")
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) })
+	mux.Handle("/a2a/v1/", a2aServer.Handler())
 	mux.Handle("/mcp", srv)
 
 	fmt.Println("listening on", addr)
@@ -59,3 +72,15 @@ func main() {
 	}
 }
 
+func resolveAgentID(envFile string) string {
+	if value := strings.TrimSpace(os.Getenv("OPENCLAW_AGENT_ID")); value != "" {
+		return value
+	}
+	if strings.TrimSpace(envFile) != "" {
+		env, err := openclaw.LoadGatewayEnv(envFile)
+		if err == nil && strings.TrimSpace(env.AgentID) != "" {
+			return env.AgentID
+		}
+	}
+	return "x-automation-agent"
+}

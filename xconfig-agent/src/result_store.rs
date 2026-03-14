@@ -17,17 +17,24 @@ pub struct CommandResult {
     pub return_code: i32,
 }
 
-pub async fn persist(results: Vec<CommandResult>) -> anyhow::Result<()> {
+pub async fn persist(
+    results: Vec<CommandResult>,
+    status_dir: &str,
+    node_id: Option<&str>,
+) -> anyhow::Result<()> {
     let json = serde_json::to_string_pretty(&results)?;
     let ts = Utc::now().format("%Y%m%d%H%M%S");
-    let path = format!("/var/lib/xconfig-agent/status-{}.json", ts);
-    fs::create_dir_all(Path::new("/var/lib/xconfig-agent"))?;
+    let prefix = node_id
+        .map(|value| format!("status-{}-", value))
+        .unwrap_or_else(|| "status-".to_string());
+    let path = Path::new(status_dir).join(format!("{}{}.json", prefix, ts));
+    fs::create_dir_all(Path::new(status_dir))?;
     fs::write(path, json)?;
     Ok(())
 }
 
-pub async fn print_latest() -> anyhow::Result<()> {
-    let path = Path::new("/var/lib/xconfig-agent");
+pub async fn print_latest(status_dir: &str) -> anyhow::Result<()> {
+    let path = Path::new(status_dir);
     let mut entries: Vec<_> = read_dir(path)?
         .filter_map(|e| e.ok())
         .filter(|e| e.file_name().to_string_lossy().starts_with("status-"))

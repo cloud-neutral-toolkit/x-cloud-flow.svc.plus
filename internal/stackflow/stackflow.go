@@ -219,6 +219,65 @@ func DNSPlan(cfg map[string]any, env string) (map[string]any, error) {
 	}, nil
 }
 
+func IACPlan(cfg map[string]any, env string) (map[string]any, error) {
+	cfg2 := cfg
+	if strings.TrimSpace(env) != "" {
+		g, _ := cfg["global"].(map[string]any)
+		envs, _ := g["environments"].(map[string]any)
+		if envs == nil {
+			return nil, fmt.Errorf("env not found in global.environments: %s", env)
+		}
+		if _, ok := envs[env]; !ok {
+			return nil, fmt.Errorf("env not found in global.environments: %s", env)
+		}
+		cfg2 = ApplyEnvOverrides(cfg, env)
+	}
+
+	validation, err := Validate(cfg2)
+	if err != nil {
+		return nil, err
+	}
+	dnsPlan, err := DNSPlan(cfg, env)
+	if err != nil {
+		return nil, err
+	}
+
+	g, _ := cfg2["global"].(map[string]any)
+	targetsAny := cfg2["targets"].([]any)
+	targets := make([]map[string]any, 0, len(targetsAny))
+	for _, tAny := range targetsAny {
+		t := tAny.(map[string]any)
+		targets = append(targets, map[string]any{
+			"id":      strings.TrimSpace(toString(t["id"])),
+			"type":    strings.TrimSpace(toString(t["type"])),
+			"domains": stringList(t["domains"]),
+		})
+	}
+
+	return map[string]any{
+		"stack":   validation["stack"],
+		"env":     strings.TrimSpace(env),
+		"summary": validation,
+		"phases": []string{
+			"stackflow.validate",
+			"stackflow.plan.dns",
+			"stackflow.plan.iac",
+		},
+		"execution": map[string]any{
+			"cloud":        toString(g["cloud"]),
+			"dns_provider": toString(g["dns_provider"]),
+			"domain":       toString(g["domain"]),
+			"targets":      targets,
+		},
+		"dns": dnsPlan,
+		"next_steps": []string{
+			"Review validation and DNS plan output before making changes.",
+			"Use the generated Codex manifest if you want an ACP/Codex runtime to continue the IaC task.",
+			"Keep apply operations behind an explicit approval gate.",
+		},
+	}, nil
+}
+
 func getStr(m map[string]any, key string, ctx string) (string, error) {
 	if m == nil {
 		return "", fmt.Errorf("missing required field: %s", ctx)
@@ -308,3 +367,20 @@ func cloneMap(m map[string]any) map[string]any {
 	return out
 }
 
+func toString(v any) string {
+	s, _ := v.(string)
+	return s
+}
+
+func stringList(v any) []string {
+	raw, _ := v.([]any)
+	out := make([]string, 0, len(raw))
+	for _, item := range raw {
+		s, _ := item.(string)
+		if strings.TrimSpace(s) == "" {
+			continue
+		}
+		out = append(out, s)
+	}
+	return out
+}

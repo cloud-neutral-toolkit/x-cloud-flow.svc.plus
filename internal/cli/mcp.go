@@ -6,11 +6,15 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
 
+	"xcloudflow/internal/a2a"
+	"xcloudflow/internal/defaults"
 	"xcloudflow/internal/mcp"
+	"xcloudflow/internal/openclaw"
 	"xcloudflow/internal/store"
 )
 
@@ -26,6 +30,8 @@ func mcpCmd() *cobra.Command {
 
 func mcpServeCmd() *cobra.Command {
 	var addr string
+	var workspace string
+	var envFile string
 	cmd := &cobra.Command{
 		Use:   "serve",
 		Short: "Run MCP HTTP server (Cloud Run friendly)",
@@ -34,7 +40,7 @@ func mcpServeCmd() *cobra.Command {
 				if p := os.Getenv("PORT"); p != "" {
 					addr = ":" + p
 				} else {
-					addr = ":8080"
+					addr = ":" + defaults.DefaultMCPPort
 				}
 			}
 
@@ -50,18 +56,40 @@ func mcpServeCmd() *cobra.Command {
 				defer st.Close()
 			}
 
-			srv := mcp.NewServer(mcp.ServerOptions{Store: st})
+			srv := mcp.NewServer(mcp.ServerOptions{
+				Store:        st,
+				WorkspaceDir: workspace,
+				EnvFile:      envFile,
+				MCPURL:       mcpURLForAddr(addr),
+			})
+			a2aServer := a2a.NewService(resolveAgentIDForServe(envFile), "automation")
 
 			mux := http.NewServeMux()
 			mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) })
+			mux.Handle("/a2a/v1/", a2aServer.Handler())
 			mux.Handle("/mcp", srv)
 
 			fmt.Println("listening on", addr)
 			return http.ListenAndServe(addr, mux)
 		},
 	}
-	cmd.Flags().StringVar(&addr, "addr", "", "listen addr (default :8080, or :$PORT)")
+	cmd.Flags().StringVar(&addr, "addr", "", "listen addr (default :8808, or :$PORT)")
+	cmd.Flags().StringVar(&workspace, "workspace", "", "workspace root for Codex/OpenClaw bridge defaults (default: cwd)")
+	cmd.Flags().StringVar(&envFile, "env-file", "", "path to local mixed .env/.json-style gateway secrets file (default: <workspace>/.env)")
 	return cmd
+}
+
+func resolveAgentIDForServe(envFile string) string {
+	if value := strings.TrimSpace(os.Getenv("OPENCLAW_AGENT_ID")); value != "" {
+		return value
+	}
+	if strings.TrimSpace(envFile) != "" {
+		env, err := openclaw.LoadGatewayEnv(envFile)
+		if err == nil && strings.TrimSpace(env.AgentID) != "" {
+			return env.AgentID
+		}
+	}
+	return defaults.OpenClawAgentID()
 }
 
 func mcpServersCmd() *cobra.Command {
@@ -169,7 +197,7 @@ func mcpServersRefreshCmd() *cobra.Command {
 				if !srv.Enabled {
 					continue
 				}
-				c := mcp.NewClient(srv.BaseURL)
+				c := mcp.NewClientWithOptions(srv.BaseURL, clientOptionsForServer(srv))
 				tools, err := c.ToolsList(ctx)
 				if err != nil {
 					return fmt.Errorf("server %s: %w", srv.Name, err)
@@ -186,3 +214,19 @@ func mcpServersRefreshCmd() *cobra.Command {
 	return cmd
 }
 
+func mcpURLForAddr(addr string) string {
+	if explicit := strings.TrimSpace(os.Getenv("XCF_MCP_URL")); explicit != "" {
+		return explicit
+	}
+	if strings.HasPrefix(addr, ":") {
+		return "http://127.0.0.1" + addr + "/mcp"
+	}
+	return defaults.MCPURL()
+}
+
+func clientOptionsForServer(srv store.MCPServer) mcp.ClientOptions {
+	if strings.EqualFold(srv.AuthType, "bearer") && srv.Name == defaults.DefaultSSHMCPServerName {
+		return mcp.ClientOptions{BearerToken: defaults.SSHMCPBearerToken()}
+	}
+	return mcp.ClientOptions{}
+}

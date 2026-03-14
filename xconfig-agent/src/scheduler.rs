@@ -7,7 +7,7 @@ use std::path::Path;
 use tokio::time::{sleep, Duration};
 
 pub async fn run_schedule(agent_config: &AgentConfig) -> anyhow::Result<()> {
-    let repo_dir = "/tmp/xconfig-agent-sync";
+    let repo_dir = agent_config.repo_dir();
     let branch = agent_config.branch.as_deref().unwrap_or("main");
 
     // 启动时 clone 一次
@@ -53,7 +53,12 @@ pub async fn run_schedule(agent_config: &AgentConfig) -> anyhow::Result<()> {
                 }
             }
 
-            result_store::persist(all_results).await?;
+            result_store::persist(
+                all_results,
+                agent_config.status_dir(),
+                agent_config.node_id(),
+            )
+            .await?;
         } else {
             println!("✅ No changes in Git repo.");
         }

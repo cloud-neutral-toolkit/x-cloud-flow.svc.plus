@@ -41,3 +41,5 @@ Thumbs.db
 xcloud-cli/xcloud
 xconfig/xconfig
 
+# Generated XCloudFlow runtime state
+.xcloudflow/
