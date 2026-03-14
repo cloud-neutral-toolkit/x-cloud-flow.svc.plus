@@ -1,0 +1,26 @@
+kind: StackFlow
+
+metadata:
+  name: xcloudflow-demo
+
+global:
+  domain: svc.plus
+  dns_provider: cloudflare
+  cloud: azure
+  environments:
+    prod:
+      domain: svc.plus
+      dns_provider: cloudflare
+      cloud: azure
+
+targets:
+  - id: api
+    type: service
+    domains:
+      - api.svc.plus
+    dns:
+      records:
+        - name: api
+          type: CNAME
+          value: ingress.svc.plus
+          ttl: 300

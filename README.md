@@ -23,6 +23,7 @@ XCloudFlow 是一个面向多云场景的单体仓库，聚合了基础设施管
 - 提供聚合型根目录 Makefile，一键触发各子项目的构建与演示命令，降低多组件协作门槛。
 - 文档体系覆盖整体架构、模块化执行框架、弹性基础设施即代码设计及 Playbook DSL 规范，为二次开发和平台扩展提供详实参考。
 - 全栈设计强调以 GitOps 为唯一真相源，通过策略路由、依赖图和统一执行引擎，构建多云一致性的计划/差异/审批/审计闭环。
+- 补齐 `xcloudflow` CLI/MCP 面，新增 Codex/OpenClaw bridge，把仓库转换成面向 IaC 自动化的智能体工作台。
 
 ---
 
@@ -53,6 +54,27 @@ cargo build --release
 ```
 默认配置从 `/etc/xconfig-agent.conf` 拉取 Git 仓库、读取 Playbook，并将执行结果落盘到 `/var/lib/xconfig-agent/`。
 
+### 4. xcloudflow（IaC Agent / MCP Server）
+```bash
+go run ./cmd/xcloudflow mcp serve --addr :8808 --workspace "$PWD" --env-file .env
+go run ./cmd/xcloudflow agent spec --config examples/stackflow/demo.yaml --env prod --env-file .env
+go run ./cmd/xcloudflow agent register-openclaw --env-file .env
+```
+- `xcloudflow mcp serve`：在本地 `:8808` 暴露 MCP tools，保留原有 `stackflow.*` 工具，同时新增 `agent.codex.manifest`、`agent.openclaw.patch`、`iac.terraform.*`、`config.ansible.*`、`edge.ssh.exec`、`terraform.*`、`ansible.*`。
+- `xcloudflow agent spec`：组合 StackFlow plan、Codex manifest 和 OpenClaw patch。
+- `xcloudflow agent register-openclaw`：读取本地 `.env`，输出可 merge 的 OpenClaw ACP agent patch，默认 agent id 是 `xcloudflow-iac`。
+
+### 5. embedded codex（submodule）
+```bash
+make codex-init
+make codex-status
+make codex-home
+make codex-render-config
+```
+- `third_party/codex` 用于保留上游 OpenAI Codex 源码，XCloudFlow 通过 bridge 生成稳定的 ACP runtime manifest，而不是硬编码依赖上游内部构建结构。
+- `configs/codex/` 和 `scripts/codex/` 为项目级 `CODEX_HOME`、`config.toml`、本地 MCP 启动和 `codex exec` 包装层提供模板与脚本。
+- 如果要让 Codex ACP runtime 通过 OpenAI-compatible gateway 工作，请在启动前提供 `OPENAI_BASE_URL` 与 `OPENAI_API_KEY`，或让脚本通过 `.env` 自动注入。
+
 ---
 
 ## 🧰 仓库级 Makefile
@@ -63,6 +85,9 @@ make help
 make xcloud-build
 make xconfig-playbook
 make xconfig-agent-run
+make xcloudflow-mcp
+make codex-home
+make xcloudflow-openclaw-register
 ```
 
 ---
@@ -74,6 +99,8 @@ make xconfig-agent-run
 - `ModuleExecutionDesign.md`：模块化执行框架设计
 - `ElasticIACDesign.md`：Go + Pulumi 弹性 IAC 架构
 - `craftweave-playbook-spec.md`：Xconfig Playbook DSL
+- `stackflow/codex-openclaw.md`：Codex 子模块、IaC Agent 与 OpenClaw Gateway 集成
+- `plans/2026-03-14-xcloudflow-codex-acp-iac-edge-ssh.md`：Codex ACP + Terraform/Ansible + edge SSH 详细实施方案
 
 ---
 
