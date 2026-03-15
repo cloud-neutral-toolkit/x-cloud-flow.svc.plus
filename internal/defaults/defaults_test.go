@@ -31,6 +31,13 @@ func TestRepoDefaultsSupportEnvOverride(t *testing.T) {
 	}
 }
 
+func TestTenantIDUsesEnvOverride(t *testing.T) {
+	t.Setenv("XCF_TENANT_ID", "tenant-a")
+	if got := TenantID(); got != "tenant-a" {
+		t.Fatalf("unexpected tenant id: %s", got)
+	}
+}
+
 func TestCodexHomeResolvesRelativeOverride(t *testing.T) {
 	t.Setenv("XCF_CODEX_HOME", ".custom/codex")
 	workspace := filepath.Join(string(filepath.Separator), "tmp", "workspace")

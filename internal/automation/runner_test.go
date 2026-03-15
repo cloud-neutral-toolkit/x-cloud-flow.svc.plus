@@ -11,11 +11,14 @@ func TestRequireApplyGate(t *testing.T) {
 	if err := RequireApplyGate(Gate{Confirm: "APPLY", ChangeRef: "chg-1"}); err != nil {
 		t.Fatalf("expected gate to pass: %v", err)
 	}
+	if err := RequireApplyGate(Gate{Confirm: "APPLY", ChangeSetID: "cs-1"}); err != nil {
+		t.Fatalf("expected change_set_id gate to pass: %v", err)
+	}
 	if err := RequireApplyGate(Gate{Confirm: "PLAN", ChangeRef: "chg-1"}); err == nil {
 		t.Fatal("expected confirm gate failure")
 	}
 	if err := RequireApplyGate(Gate{Confirm: "APPLY"}); err == nil {
-		t.Fatal("expected change_ref gate failure")
+		t.Fatal("expected change_set_id/change_ref gate failure")
 	}
 }
 

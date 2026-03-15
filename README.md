@@ -98,6 +98,7 @@ make xcloudflow-openclaw-register
 - `XCloudFlowDesign.md`：整体平台架构
 - `ModuleExecutionDesign.md`：模块化执行框架设计
 - `ElasticIACDesign.md`：Go + Pulumi 弹性 IAC 架构
+- `plans/2026-03-15-xcloudflow-postgresql-state-design.md`：XCloudFlow + PostgreSQL 权威状态库、资源清单、CMDB 镜像与漂移检测落地方案
 - `craftweave-playbook-spec.md`：Xconfig Playbook DSL
 - `stackflow/codex-openclaw.md`：Codex 子模块、IaC Agent 与 OpenClaw Gateway 集成
 - `plans/2026-03-14-xcloudflow-codex-acp-iac-edge-ssh.md`：Codex ACP + Terraform/Ansible + edge SSH 详细实施方案

@@ -1,5 +1,7 @@
 # XCloudFlow 数据存储设计
 
+> Refined in: [docs/plans/2026-03-15-xcloudflow-postgresql-state-design.md](/Users/shenlan/workspaces/cloud-neutral-toolkit/x-cloud-flow.svc.plus/docs/plans/2026-03-15-xcloudflow-postgresql-state-design.md)
+
 本文档描述在 XCloudFlow 中构建自托管基础设施状态与资源图谱服务的设计方案。方案坚持只使用 Terraform SDK 与 Pulumi SDK 及其模块生态，
 自研状态服务与数据持久层，不依赖官方默认的对象存储或 SaaS 后端。
 

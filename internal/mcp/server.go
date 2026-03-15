@@ -96,7 +96,7 @@ func NewServer(opts ServerOptions) *Server {
 		{
 			Name:        "iac.terraform.apply",
 			Description: "Stage a Terraform module from the shared IaC repository, run init, then apply it behind an explicit approval gate.",
-			InputSchema: json.RawMessage(`{"type":"object","properties":{"module":{"type":"string"},"working_dir":{"type":"string"},"vars_file":{"type":"string"},"vars":{"type":"object"},"workspace":{"type":"string"},"confirm":{"type":"string"},"change_ref":{"type":"string"}}}`),
+			InputSchema: json.RawMessage(`{"type":"object","properties":{"module":{"type":"string"},"working_dir":{"type":"string"},"vars_file":{"type":"string"},"vars":{"type":"object"},"workspace":{"type":"string"},"confirm":{"type":"string"},"change_ref":{"type":"string"},"change_set_id":{"type":"string"},"tenant_id":{"type":"string"}}}`),
 		},
 		{
 			Name:        "config.ansible.check",
@@ -106,12 +106,12 @@ func NewServer(opts ServerOptions) *Server {
 		{
 			Name:        "config.ansible.apply",
 			Description: "Run ansible-playbook from the shared playbooks repository behind an explicit approval gate.",
-			InputSchema: json.RawMessage(`{"type":"object","properties":{"playbook":{"type":"string"},"inventory":{"type":"string"},"limit":{"type":"string"},"extra_vars":{"type":"object"},"confirm":{"type":"string"},"change_ref":{"type":"string"}},"required":["playbook"]}`),
+			InputSchema: json.RawMessage(`{"type":"object","properties":{"playbook":{"type":"string"},"inventory":{"type":"string"},"limit":{"type":"string"},"extra_vars":{"type":"object"},"confirm":{"type":"string"},"change_ref":{"type":"string"},"change_set_id":{"type":"string"},"tenant_id":{"type":"string"}},"required":["playbook"]}`),
 		},
 		{
 			Name:        "edge.ssh.exec",
 			Description: "Execute a read-only or explicitly approved command through the external edge_ssh MCP server.",
-			InputSchema: json.RawMessage(`{"type":"object","properties":{"target":{"type":"string"},"command":{"type":"string"},"cwd":{"type":"string"},"env":{"type":"object"},"timeout_sec":{"type":"integer"},"confirm":{"type":"string"},"change_ref":{"type":"string"}},"required":["target","command"]}`),
+			InputSchema: json.RawMessage(`{"type":"object","properties":{"target":{"type":"string"},"command":{"type":"string"},"cwd":{"type":"string"},"env":{"type":"object"},"timeout_sec":{"type":"integer"},"confirm":{"type":"string"},"change_ref":{"type":"string"},"change_set_id":{"type":"string"},"tenant_id":{"type":"string"}},"required":["target","command"]}`),
 		},
 		{
 			Name:        "terraform.init",
@@ -126,22 +126,22 @@ func NewServer(opts ServerOptions) *Server {
 		{
 			Name:        "terraform.apply",
 			Description: "Run terraform apply in a provided working directory behind an explicit approval gate.",
-			InputSchema: json.RawMessage(`{"type":"object","properties":{"working_dir":{"type":"string"},"vars_file":{"type":"string"},"vars":{"type":"object"},"workspace":{"type":"string"},"confirm":{"type":"string"},"change_ref":{"type":"string"}},"required":["working_dir"]}`),
+			InputSchema: json.RawMessage(`{"type":"object","properties":{"working_dir":{"type":"string"},"vars_file":{"type":"string"},"vars":{"type":"object"},"workspace":{"type":"string"},"confirm":{"type":"string"},"change_ref":{"type":"string"},"change_set_id":{"type":"string"},"tenant_id":{"type":"string"}},"required":["working_dir"]}`),
 		},
 		{
 			Name:        "terraform.destroy",
 			Description: "Run terraform destroy in a provided working directory behind an explicit approval gate.",
-			InputSchema: json.RawMessage(`{"type":"object","properties":{"working_dir":{"type":"string"},"vars_file":{"type":"string"},"vars":{"type":"object"},"workspace":{"type":"string"},"confirm":{"type":"string"},"change_ref":{"type":"string"}},"required":["working_dir"]}`),
+			InputSchema: json.RawMessage(`{"type":"object","properties":{"working_dir":{"type":"string"},"vars_file":{"type":"string"},"vars":{"type":"object"},"workspace":{"type":"string"},"confirm":{"type":"string"},"change_ref":{"type":"string"},"change_set_id":{"type":"string"},"tenant_id":{"type":"string"}},"required":["working_dir"]}`),
 		},
 		{
 			Name:        "ansible.playbook",
 			Description: "Run ansible-playbook in check mode or apply mode using the shared playbooks repository.",
-			InputSchema: json.RawMessage(`{"type":"object","properties":{"playbook":{"type":"string"},"inventory":{"type":"string"},"limit":{"type":"string"},"extra_vars":{"type":"object"},"check":{"type":"boolean"},"confirm":{"type":"string"},"change_ref":{"type":"string"}},"required":["playbook"]}`),
+			InputSchema: json.RawMessage(`{"type":"object","properties":{"playbook":{"type":"string"},"inventory":{"type":"string"},"limit":{"type":"string"},"extra_vars":{"type":"object"},"check":{"type":"boolean"},"confirm":{"type":"string"},"change_ref":{"type":"string"},"change_set_id":{"type":"string"},"tenant_id":{"type":"string"}},"required":["playbook"]}`),
 		},
 		{
 			Name:        "ansible.adhoc",
 			Description: "Run an ansible ad-hoc command in check mode or behind an explicit approval gate.",
-			InputSchema: json.RawMessage(`{"type":"object","properties":{"inventory":{"type":"string"},"target":{"type":"string"},"module":{"type":"string"},"args":{"type":"string"},"check":{"type":"boolean"},"confirm":{"type":"string"},"change_ref":{"type":"string"}},"required":["target","module"]}`),
+			InputSchema: json.RawMessage(`{"type":"object","properties":{"inventory":{"type":"string"},"target":{"type":"string"},"module":{"type":"string"},"args":{"type":"string"},"check":{"type":"boolean"},"confirm":{"type":"string"},"change_ref":{"type":"string"},"change_set_id":{"type":"string"},"tenant_id":{"type":"string"}},"required":["target","module"]}`),
 		},
 	}
 	return &Server{

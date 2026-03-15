@@ -11,6 +11,7 @@ const (
 	DefaultMCPPort           = "8808"
 	DefaultTerraformRepo     = "/Users/shenlan/workspaces/cloud-neutral-toolkit/iac_modules"
 	DefaultPlaybooksRepo     = "/Users/shenlan/workspaces/cloud-neutral-toolkit/playbooks"
+	DefaultTenantID          = "default"
 	DefaultOpenClawAgentID   = "xcloudflow-iac"
 	DefaultSSHMCPServerName  = "edge_ssh"
 	DefaultSSHMCPTool        = "ssh_execute"
@@ -61,6 +62,13 @@ func PlaybooksRepo() string {
 		return repo
 	}
 	return DefaultPlaybooksRepo
+}
+
+func TenantID() string {
+	if tenantID := strings.TrimSpace(os.Getenv("XCF_TENANT_ID")); tenantID != "" {
+		return tenantID
+	}
+	return DefaultTenantID
 }
 
 func SSHMCPURL() string {

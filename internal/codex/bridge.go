@@ -103,7 +103,7 @@ func buildSystemPrompt(cfg BridgeConfig, req TaskRequest) string {
 	lines = append(lines, "Always inspect the current repository state before proposing changes.")
 	lines = append(lines, "Prefer calling the local XCloudFlow MCP server for StackFlow validation and planning before making infrastructure edits.")
 	lines = append(lines, "Use Terraform as the default IaC engine and the shared playbooks repository as the default configuration automation source.")
-	lines = append(lines, "Keep mutating terraform/ansible/ssh actions behind an explicit confirm=APPLY + change_ref gate.")
+	lines = append(lines, "Keep mutating terraform/ansible/ssh actions behind an explicit confirm=APPLY + change_set_id gate; change_ref is legacy compatibility only.")
 	lines = append(lines, "Do not convert xconfig-agent into a Codex/OpenClaw edge runtime; it remains a lightweight node-side executor.")
 	if cfg.MCPURL != "" {
 		lines = append(lines, "MCP endpoint: "+cfg.MCPURL)

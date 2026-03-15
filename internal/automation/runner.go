@@ -18,8 +18,9 @@ import (
 )
 
 type Gate struct {
-	Confirm   string
-	ChangeRef string
+	Confirm     string
+	ChangeRef   string
+	ChangeSetID string
 }
 
 type CommandResult struct {
@@ -53,8 +54,8 @@ func RequireApplyGate(gate Gate) error {
 	if strings.TrimSpace(gate.Confirm) != "APPLY" {
 		return fmt.Errorf("mutating operations require confirm=APPLY")
 	}
-	if strings.TrimSpace(gate.ChangeRef) == "" {
-		return fmt.Errorf("mutating operations require a non-empty change_ref")
+	if strings.TrimSpace(gate.ChangeSetID) == "" && strings.TrimSpace(gate.ChangeRef) == "" {
+		return fmt.Errorf("mutating operations require a non-empty change_set_id or change_ref")
 	}
 	return nil
 }

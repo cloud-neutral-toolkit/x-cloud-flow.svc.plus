@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
+	"sort"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -33,11 +35,6 @@ func dbInitCmd() *cobra.Command {
 			if schemaPath == "" {
 				schemaPath = "sql/schema.sql"
 			}
-			b, err := os.ReadFile(schemaPath)
-			if err != nil {
-				return fmt.Errorf("read schema: %w", err)
-			}
-
 			ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 			defer cancel()
 
@@ -47,10 +44,20 @@ func dbInitCmd() *cobra.Command {
 			}
 			defer st.Close()
 
-			if err := st.ExecSQL(ctx, string(b)); err != nil {
+			if err := applySQLFile(ctx, st, schemaPath); err != nil {
 				return fmt.Errorf("apply schema: %w", err)
 			}
-			fmt.Println("ok: schema applied")
+			migrationFiles, err := filepath.Glob("sql/migrations/*.sql")
+			if err != nil {
+				return fmt.Errorf("list migrations: %w", err)
+			}
+			sort.Strings(migrationFiles)
+			for _, migration := range migrationFiles {
+				if err := applySQLFile(ctx, st, migration); err != nil {
+					return fmt.Errorf("apply migration %s: %w", migration, err)
+				}
+			}
+			fmt.Println("ok: schema and migrations applied")
 			return nil
 		},
 	}
@@ -58,3 +65,10 @@ func dbInitCmd() *cobra.Command {
 	return cmd
 }
 
+func applySQLFile(ctx context.Context, st *store.Store, path string) error {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return fmt.Errorf("read %s: %w", path, err)
+	}
+	return st.ExecSQL(ctx, string(b))
+}

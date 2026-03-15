@@ -25,6 +25,7 @@ func Execute() error {
 	rootCmd.AddCommand(mcpCmd())
 	rootCmd.AddCommand(skillsCmd())
 	rootCmd.AddCommand(agentCmd())
+	rootCmd.AddCommand(stateCmd())
 
 	return rootCmd.Execute()
 }
@@ -35,4 +36,3 @@ func dsnOrErr() (string, error) {
 	}
 	return rf.DSN, nil
 }
-
