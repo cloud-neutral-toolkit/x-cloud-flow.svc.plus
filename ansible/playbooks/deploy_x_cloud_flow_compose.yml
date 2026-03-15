@@ -1,0 +1,7 @@
+- name: Deploy x-cloud-flow.svc.plus to the single-node Docker Compose host
+  hosts: server
+  become: yes
+  gather_facts: yes
+  roles:
+    - role: x_cloud_flow_compose_deploy
+

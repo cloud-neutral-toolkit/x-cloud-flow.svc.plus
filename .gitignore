@@ -43,3 +43,5 @@ xconfig/xconfig
 
 # Generated XCloudFlow runtime state
 .xcloudflow/
+ansible/vars/*.host.yml
+ansible/vars/*.vault.yml

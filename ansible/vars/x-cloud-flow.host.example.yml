@@ -1,0 +1,22 @@
+# Copy to ansible/vars/x-cloud-flow.host.yml (gitignored), or store the real values
+# in an external Ansible Vault file and pass it with:
+#   ansible-playbook -D -C ansible/playbooks/deploy_x_cloud_flow_compose.yml -e @/secure/path/x-cloud-flow.vault.yml
+
+service_compose_image: ghcr.io/YOUR_GITHUB_ORG/x-cloud-flow:latest
+service_compose_registry_server: ghcr.io
+service_compose_registry_username: CHANGE_ME
+service_compose_registry_password: CHANGE_ME
+service_compose_env_common:
+  DATABASE_URL: CHANGE_ME
+  OPENCLAW_AGENT_ID: x-automation-agent
+  OPENCLAW_GATEWAY_URL: CHANGE_ME
+  OPENCLAW_GATEWAY_TOKEN: CHANGE_ME
+  OPENAI_BASE_URL: CHANGE_ME
+  OPENAI_API_KEY: CHANGE_ME
+service_compose_deploy_targets:
+  - name: prod
+    deploy_subdomain_prefix: x-cloud-flow
+    stable_domains:
+      - x-cloud-flow.svc.plus
+    host_port: 18083
+    env: {}
