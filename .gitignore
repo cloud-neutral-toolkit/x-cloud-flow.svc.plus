@@ -1,3 +1,4 @@
+.env
 # Go build artifacts
 /bin/
 /dist/
